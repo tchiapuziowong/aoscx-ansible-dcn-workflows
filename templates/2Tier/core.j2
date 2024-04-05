@@ -1,37 +1,50 @@
 
-hostname RSVDC-CORE1-1
+hostname {{ hostname}}
 user admin group administrators password ciphertext AQBapetVmtD4dXlkd3rWXjrI57yHNA4Zr0HszgOE7BgeEtekYgAAALC1aBsgvgOxs5UvlJtdipTnLbOzykRphH6kLpXi7FKHrFgrrm0n7EGSjtSLbOEvADjo8TtIC9hU1ZJbe25QdO2znb4JzsYtdE9yq4IMMFtzARalPNC85VYOcbZylD+0iEeF
 clock timezone america/los_angeles
 profile l3-agg
-ntp server 10.2.120.98 prefer
-ntp server 10.2.120.99 prefer
+{% for server in ntp_servers %}
+ntp server {{ server }}
+{% endfor %}
 ntp enable
-ntp vrf mgmt
+ntp vrf {{ ntp_vrf | default("mgmt", true) }}
 !
 !
 !
 !
-tacacs-server host 10.2.120.94 key ciphertext AQBapah6J58j0GKl3+uHUBUlAKt4DOo0wBo+DyDjLrayIJ8jCQAAANRLzagS8NJrTQ== vrf mgmt
-tacacs-server host 10.2.120.95 key ciphertext AQBapWA2l0klkgqYXjMyTwXPBiM4rnR4xSc41ul+Ufo7PaAhCQAAAJvSMgzD8n1wWw== vrf mgmt
+{% for server in tacacs_servers %}
+tacacs-server host {{server.host}} key ciphertext {{server.ciphertext}} vrf mgmt
+{% endfor %}
 !
 !
 !
 ssh server vrf mgmt
+router ospf 1
+    router-id {{loopback0_ip}}
+    passive-interface default    
+    area {{ospf_area}}
 vlan 1
-vlan 101
-    name PROD-WEB
-vlan 102
-    name PROD-DB
-vlan 4000
-    name CORE-ROUTING
+{% for vlan in host_vlans %}
+vlan {{vlan.id}}
+    name {{vlan.name}}
+{% endfor %}
+{% for vlan in routing_vlans %}
+vlan {{vlan.id}}
+    name {{vlan.name}}
+{% endfor %}
 spanning-tree
 spanning-tree priority 0
-spanning-tree config-name RSVDC
+{% if group is defined %}
+spanning-tree config-name {{group}}
+{% elif stp_config_name is defined %}
+spanning-tree config-name {{stp_config_name}}
+{% endif %}
 interface mgmt
     no shutdown
     ip dhcp
-interface lag 1 multi-chassis
-    description RACK-1
+{% for lag in racks %}
+interface lag {{ loop.index }} multi-chassis
+    description RACK-{{rack.id}}
     no shutdown
     no routing
     vlan trunk native 1
@@ -39,33 +52,20 @@ interface lag 1 multi-chassis
     lacp mode active
     lacp fallback
     spanning-tree root-guard
-interface lag 2 multi-chassis
-    description RACK-2
+{% endfor %}
+{% for lag in mclags %}
+interface lag {{ lag.id }} multi-chassis
+    description {{ lag.description }}
     no shutdown
     no routing
     vlan trunk native 1
-    vlan trunk allowed all
+{% for vlan in host_vlans %}
+    vlan trunk allowed {{vlan.id}}
+{% endfor %}
     lacp mode active
     lacp fallback
     spanning-tree root-guard
-interface lag 101 multi-chassis
-    description EXT-FW1-1
-    no shutdown
-    no routing
-    vlan trunk native 1
-    vlan trunk allowed 4000
-    lacp mode active
-    lacp fallback
-    spanning-tree root-guard
-interface lag 102 multi-chassis
-    description EXT-FW1-2
-    no shutdown
-    no routing
-    vlan trunk native 1
-    vlan trunk allowed 4000
-    lacp mode active
-    lacp fallback
-    spanning-tree root-guard
+{% endfor %}
 interface lag 256
     description VSX_ISL_LAG
     no shutdown
@@ -93,102 +93,6 @@ interface 1/1/4
     no shutdown
     mtu 9198
     lag 2
-interface 1/1/5
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/6
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/7
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/8
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/9
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/10
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/11
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/12
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/13
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/14
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/15
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/16
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/17
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/18
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/19
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/20
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/21
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/22
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/23
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/24
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/25
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/26
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/27
-    no shutdown
-    no routing
-    vlan access 1
-interface 1/1/28
-    no shutdown
-    no routing
-    vlan access 1
 interface 1/1/29
     description EXT-FW1-1
     no shutdown
@@ -209,44 +113,53 @@ interface 1/1/32
     no shutdown
     mtu 9198
     lag 256
-interface loopback 0
-    ip address 10.250.12.1/32
-    ip ospf 1 area 0.0.0.0
-interface vlan 101
-    description PROD-WEB-SVI
+router ospf 1
+    router-id {{loopback0_ip}}/32
+    area {{ospf_area}}
+{% for vlan in host_vlans %}
+interface vlan {{vlan.id}}
+    description {{vlan.name}}
     ip mtu 9198
-    ip address 10.12.101.2/24
-    active-gateway ip mac 02:00:0a:01:65:01
-    active-gateway ip 10.12.101.1
+    ip address {{vlan.ip}}/{{vlan.mask | default('24', true)}}
+    active-gateway ip mac {{vlan.active_gateway_mac}}
+    active-gateway ip {{vlan.active_gateway_ip}}
     ip ospf 1 area 0.0.0.0
     ip igmp enable
     ip pim-sparse enable
-interface vlan 102
-    description PROD-DB-SVI
-    ip mtu 9198
-    ip address 10.12.102.2/24
-    active-gateway ip mac 02:00:0a:01:65:01
-    active-gateway ip 10.12.102.1
-    ip ospf 1 area 0.0.0.0
-    ip igmp enable
-    ip pim-sparse enable
-interface vlan 4000
+{% endfor %}    
+{% for vlan in routing_vlans %}
+interface vlan {{vlan.id}}
     description CORE-ROUTING-SVI
     ip mtu 9000
-    ip address 10.255.12.1/29
+    ip address {{vlan.ip}}/{{vlan.mask | default('29', true)}}
     ip ospf 1 area 0.0.0.0
     no ip ospf passive
     ip pim-sparse enable
-snmp-server system-location DC01, Roseville, CA
-snmp-server system-contact netadmin@orangetme.local
+{% endfor %}    
+
+snmp-server system-location {{ system_location }}
+snmp-server system-contact {{ system_contact }}
 vsx
-    system-mac 02:00:00:00:10:00
-    inter-switch-link lag 256
-    role primary
-    keepalive peer 172.16.104.102 source 172.16.104.101 vrf mgmt
-ip dns domain-name example.local vrf mgmt
-ip dns server-address 10.2.120.98 vrf mgmt
-ip dns server-address 10.2.120.99 vrf mgmt
+    system-mac {{vsx_system_mac | default('02:00:00:00:10:01', true)}}
+    inter-switch-link lag {{vsx_isl_lagid | default('256', true)}}
+    role {{vsx_role}}
+{% if vsx_keepalive_vrf is defined %}
+{% if vsx_role == 'primary' %}
+    keepalive peer {{vsx_keepalive_ip_secondary}} source {{vsx_keepalive_ip_primary}} vrf {{vsx_keepalive_vrf}}
+{% else %}
+    keepalive peer {{vsx_keepalive_ip_primary}} source {{vsx_keepalive_ip_secondary}} vrf {{vsx_keepalive_vrf}}
+{% endif %}
+{% else %}
+{% if vsx_role == 'primary' %}
+    keepalive peer {{vsx_keepalive_ip_secondary}} source {{vsx_keepalive_ip_primary}}
+{% else %}
+    keepalive peer {{vsx_keepalive_ip_primary}} source {{vsx_keepalive_ip_secondary}}
+{% endif %}
+{% endif %}
+ip dns domain-name {{ dns_domain | default("example.local", true) }}
+{% for server in dns_servers %}
+ip dns server-address {{server}} vrf mgmt
+{% endfor %}
 !
 !
 !

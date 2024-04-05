@@ -1,4 +1,4 @@
-hostname RSVDC-ACCESS1-1
+hostname {{ hostname}}
 profile aggregation-leaf
 {% for server in ntp_servers %}
 ntp server {{ server }}
@@ -10,14 +10,15 @@ ntp vrf {{ ntp_vrf | default("mgmt", true) }}
 !
 !
 !
-tacacs-server host 10.2.120.94 key ciphertext AQBapTMGmLBPD14dwIgtfKtG6BbiEjvtTBdL/mC3bEo91XegCQAAAFUz3moFw0EX0A== vrf mgmt
-tacacs-server host 10.2.120.95 key ciphertext AQBapTsQeZay/1Mw1ivHkhdC7MGDGFcUz0oUsSNzdQf+gUw0CQAAABFOhXhwqm+UpA== vrf mgmt
+{% for server in tacacs_servers %}
+tacacs-server host {{server.host}} key ciphertext {{server.ciphertext}} vrf mgmt
+{% endfor %}
 !
 !
 !
 ssh server vrf mgmt
 vlan 1
-{% for vlan in prod_vlans %}
+{% for vlan in host_vlans %}
 vlan {{vlan.id}}
     name {{vlan.name}}
     ip igmp snooping enable
@@ -33,58 +34,54 @@ interface mgmt
     ip dhcp
 system interface-group 1 speed 10g
     !interface group 1 contains ports 1/1/1-1/1/4
-interface lag 1 multi-chassis
-    description ESXi-01
+{% for mclag in vsx_mclags %}
+interface lag {{mclag.id}} multi-chassis
     no shutdown
-    no routing
+    no routing    
+    description {{mclag.description}}
     vlan trunk native 1
-{% for vlan in prod_vlans %}
-    vlan trunk allowed 101-102
+{% for vlan in mclag.allowed_vlans %}
+    vlan trunk allowed {{vlan.id}}
 {% endfor %}
     lacp mode active
+{% if mclag.id is 1 %}
     spanning-tree root-guard
-interface lag 255 multi-chassis
-    description DC-CORE
+{% endif %}
+{% endfor %}
+interface lag {{vsx_isl_lagid}}
     no shutdown
+    description VSX-ISL-LAG
     no routing
-    vlan trunk native 1
+    vlan trunk native 1 tag
     vlan trunk allowed all
     lacp mode active
-interface lag 256
-    description VSX_ISL_LAG
+{% if vsx_isl_ports is defined %}    
+    {% for interface in vsx_isl_ports %}
+interface {{interface}}
     no shutdown
-    no routing
-    vlan trunk native 1
-    vlan trunk allowed all
-    lacp mode active
-interface 1/1/1
+    description VSX ISL
+        {% if  mtu is defined %}
+    mtu {{mtu}}
+        {% else %}
+    mtu 9198    
+        {% endif %}
+    lag {{vsx_isl_lagid}}
+    {% endfor %}
+{% else %}
+{% endif %}
+{% for mclag in vsx_mclags %}
+{% for interface in mclag.interfaces %}
+interface {{interface}}
     no shutdown
-    mtu 9198
-    lag 1
-interface 1/1/49
-    description VSX-ISL
-    no shutdown
-    mtu 9198
-    lag 256
-interface 1/1/50
-    description VSX-ISL
-    no shutdown
-    mtu 9198
-    lag 256
-interface 1/1/53
-    description RSVDC-CORE1-1
-    no shutdown
-    mtu 9198
-    lag 255
-interface 1/1/54
-    description RSVDC-CORE1-2
-    no shutdown
-    mtu 9198
-    lag 255
-snmp-server system-location DC01, Roseville, CA
-snmp-server system-contact netadmin@orangetme.local
+    description {{mclag.description}}
+    mtu {{mtu}}
+    lag {{mclag.id}}
+{% endfor %}
+{% endfor %}
+snmp-server system-location {{ system_location }}
+snmp-server system-contact {{ system_contact }}
 vsx
-    system-mac 02:00:00:00:10:01
+    system-mac {{vsx_system_mac | default('02:00:00:00:10:01', true)}}
     inter-switch-link lag {{vsx_isl_lagid | default('256', true)}}
     role {{vsx_role}}
 {% if vsx_keepalive_vrf is defined %}
@@ -100,12 +97,12 @@ vsx
     keepalive peer {{vsx_keepalive_ip_primary}} source {{vsx_keepalive_ip_secondary}}
 {% endif %}
 {% endif %}
-ip dns server-address 10.2.120.98 vrf mgmt
-ip dns server-address 10.2.120.99 vrf mgmt
+{% for server in dns_servers %}
+ip dns server-address {{server}} vrf mgmt
+{% endfor %}
 !
 !
 !
 !
 !
 https-server vrf mgmt
-configuration-lockout central managed
