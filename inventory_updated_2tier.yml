@@ -150,6 +150,7 @@ all:
               hosts:
                 RSVDC-CORE1-1:
                   ansible_host: 172.16.104.101
+                  vsx_role: primary
                   loopback0_ip: 10.250.12.1
                   routing_vlans:
                     - id: 4000
@@ -160,21 +161,30 @@ all:
                     - id: 101
                       name: PROD-WEB
                       ip_address: 10.12.101.2
+                      active_gateway_mac: 02:00:0a:01:65:01
+                      active_gateway_ip: 10.12.101.1
                     - id: 102
                       name: PROD-DB
                       ip_address: 10.12.102.2
+                      active_gateway_mac: 02:00:0a:01:65:01
+                      active_gateway_ip: 10.12.102.1
                 RSVDC-CORE1-2:
                   ansible_host: 172.16.104.102
                   loopback0_ip: 10.250.12.2
+                  vsx_role: secondary
                   routing_vlans:
                     - id: 4000
                       name: CORE-ROUTING-SVI
-                      ip_address: 10.255.12.2                 
+                      ip_address: 10.255.12.2   
                   # SVI information for DC host VLANs - used in jinja2 template
                   host_vlans:
                     - id: 101
                       name: PROD-WEB
                       ip_address: 10.12.101.3
+                      active_gateway_mac: 02:00:0a:01:65:01
+                      active_gateway_ip: 10.12.101.1
                     - id: 102
                       name: PROD-DB
                       ip_address: 10.12.102.3
+                      active_gateway_mac: 02:00:0a:01:65:01
+                      active_gateway_ip: 10.12.102.1
