@@ -46,10 +46,10 @@ interface lag {{lag.id}} multi-chassis
     description {{lag.description}}
     vlan trunk native 1
 {% for vlan in lag.allowed_vlans %}
-    vlan trunk allowed {{vlan.id}}
+    vlan trunk allowed {{vlan}}
 {% endfor %}
     lacp mode active
-{% if mclag.id is 1 %}
+{% if lag.id == '1' %}
     spanning-tree root-guard
 {% endif %}
 {% endfor %}
@@ -74,13 +74,13 @@ interface {{interface}}
     {% endfor %}
 {% else %}
 {% endif %}
-{% for mclag in vsx_mclags %}
-{% for interface in mclag.interfaces %}
+{% for lag in mclags %}
+{% for interface in lag.interfaces %}
 interface {{interface}}
     no shutdown
-    description {{mclag.description}}
+    description {{lag.description}}
     mtu {{mtu}}
-    lag {{mclag.id}}
+    lag {{lag.id}}
 {% endfor %}
 {% endfor %}
 snmp-server system-location {{ system_location }}
