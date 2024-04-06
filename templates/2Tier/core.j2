@@ -85,7 +85,6 @@ interface {{interface}}
 {% endif %}
     lag {{vsx_isl_lagid}}
 {% endfor %}
-{% endfor %}
 router ospf 1
     router-id {{loopback0_ip}}/32
     area {{ospf_area}}
