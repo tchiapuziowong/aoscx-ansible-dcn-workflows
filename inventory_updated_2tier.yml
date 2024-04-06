@@ -51,7 +51,7 @@ all:
           children:
             access:
               vars:
-                config_template: access.j2
+                config_template: templates/2Tier/access.j2
                 speed_interface_group_10g: [1]  # Enables 10g speed on specified interface groups, remove variable if unused
                 vsx_isl_ports: [1/1/31, '1/1/32']
                 vsx_system_mac: 02:00:00:00:10:01
@@ -120,7 +120,7 @@ all:
                       vsx_role: secondary
             core:
               vars:
-                config_template: core.j2
+                config_template: templates/2Tier/core.j2
                 # VSX information
                 vsx_system_mac: 02:00:00:00:10:00
                 vsx_keepalive_ip_primary: 172.16.104.101
