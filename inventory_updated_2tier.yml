@@ -76,41 +76,47 @@ all:
                     vsx_system_mac: 02:00:00:00:10:01
                     vsx_keepalive_ip_primary: 172.16.104.103
                     vsx_keepalive_ip_secondary: 172.16.104.104
+                    vsx_mclags:
+                      - id: 1
+                        interfaces: [1/1/1]
+                        allowed_vlans: ['all']
+                        mtu: 9198
+                        description: ESXi-01
+                      - id: 255
+                        interfaces: [1/1/53, 1/1/54]
+                        allowed_vlans: ['all']
+                        mtu: 9198
+                        description: DC-CORE                    
                   hosts:
                     RSVDC-ACCESS1-1:
-                      ansible_host: 10.10.10.56
+                      ansible_host: 172.16.104.103
                       vsx_role: primary
-                      vsx_mclags:
-                        - id: 1
-                          interfaces: [1/1/1]
-                          allowed_vlans: ['all']
-                          mtu: 9198
-                          description: ESXi-01
-                        - id: 255
-                          interfaces: [1/1/53, 1/1/54]
-                          allowed_vlans: ['all']
-                          mtu: 9198
-                          description: DC-CORE
                     RSVDC-ACCESS1-2:
-                      ansible_host: 10.10.10.57
+                      ansible_host: 172.16.104.104
                       vsx_role: secondary
                 rack2:
                   vars:
-                    vsx_pair_asn: 65003
-                    vsx_system_mac: 00:00:00:00:03:13
-                    vsx_keepalive_ip_primary: 192.168.1.112
-                    vsx_keepalive_ip_secondary: 192.168.1.113
-                    spine_L3fabric_ips:
-                      - 192.168.2.9
-                      - 192.168.2.11
-                      - 192.168.2.13
-                      - 192.168.2.15
+                    # VSX information
+                    vsx_system_mac: 02:00:00:00:10:02
+                    vsx_keepalive_ip_primary: 172.16.104.105
+                    vsx_keepalive_ip_secondary: 172.16.104.106
+                    vsx_mclags:
+                      - id: 1
+                        interfaces: [1/1/1]
+                        allowed_vlans: ['all']
+                        mtu: 9198
+                        description: ESXi-01
+                      - id: 255
+                        interfaces: [1/1/53, 1/1/54]
+                        allowed_vlans: ['all']
+                        mtu: 9198
+                        description: DC-CORE                    
                   hosts:
                     RSVDC-ACCESS2-1:
-                      ansible_host: 10.10.10.60
+                      ansible_host: 172.16.104.105
                       vsx_role: primary
-                    RSVDC-ACCESS2-1:
-                      ansible_host: 10.10.10.61
+                    RSVDC-ACCESS2-2:
+                      ansible_host: 172.16.104.106
                       vsx_role: secondary
             core:
               vars:
