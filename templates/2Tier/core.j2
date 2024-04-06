@@ -1,17 +1,25 @@
 
 hostname {{ hostname}}
+hostname {{ hostname}}
 user admin group administrators password ciphertext AQBapetVmtD4dXlkd3rWXjrI57yHNA4Zr0HszgOE7BgeEtekYgAAALC1aBsgvgOxs5UvlJtdipTnLbOzykRphH6kLpXi7FKHrFgrrm0n7EGSjtSLbOEvADjo8TtIC9hU1ZJbe25QdO2znb4JzsYtdE9yq4IMMFtzARalPNC85VYOcbZylD+0iEeF
 clock timezone {{timezone}}
 profile l3-agg
 {% for server in ntp_servers %}
 ntp server {{ server }}
 {% endfor %}
+{% for server in ntp_servers %}
+ntp server {{ server }}
+{% endfor %}
 ntp enable
+ntp vrf {{ ntp_vrf | default("mgmt", true) }}
 ntp vrf {{ ntp_vrf | default("mgmt", true) }}
 !
 !
 !
 !
+{% for server in tacacs_servers %}
+tacacs-server host {{server.host}} key ciphertext {{server.ciphertext}} vrf mgmt
+{% endfor %}
 {% for server in tacacs_servers %}
 tacacs-server host {{server.host}} key ciphertext {{server.ciphertext}} vrf mgmt
 {% endfor %}
@@ -35,8 +43,21 @@ vlan {{vlan.id}}
 vlan {{vlan.id}}
     name {{vlan.name}}
 {% endfor %}
+{% for vlan in host_vlans %}
+vlan {{vlan.id}}
+    name {{vlan.name}}
+{% endfor %}
+{% for vlan in routing_vlans %}
+vlan {{vlan.id}}
+    name {{vlan.name}}
+{% endfor %}
 spanning-tree
 spanning-tree priority 0
+{% if group is defined %}
+spanning-tree config-name {{group}}
+{% elif stp_config_name is defined %}
+spanning-tree config-name {{stp_config_name}}
+{% endif %}
 {% if group is defined %}
 spanning-tree config-name {{group}}
 {% elif stp_config_name is defined %}
@@ -115,6 +136,26 @@ interface loopback 0
 snmp-server system-location {{ system_location }}
 snmp-server system-contact {{ system_contact }}
 vsx
+    system-mac {{vsx_system_mac | default('02:00:00:00:10:01', true)}}
+    inter-switch-link lag {{vsx_isl_lagid | default('256', true)}}
+    role {{vsx_role}}
+{% if vsx_keepalive_vrf is defined %}
+{% if vsx_role == 'primary' %}
+    keepalive peer {{vsx_keepalive_ip_secondary}} source {{vsx_keepalive_ip_primary}} vrf {{vsx_keepalive_vrf}}
+{% else %}
+    keepalive peer {{vsx_keepalive_ip_primary}} source {{vsx_keepalive_ip_secondary}} vrf {{vsx_keepalive_vrf}}
+{% endif %}
+{% else %}
+{% if vsx_role == 'primary' %}
+    keepalive peer {{vsx_keepalive_ip_secondary}} source {{vsx_keepalive_ip_primary}}
+{% else %}
+    keepalive peer {{vsx_keepalive_ip_primary}} source {{vsx_keepalive_ip_secondary}}
+{% endif %}
+{% endif %}
+ip dns domain-name {{ dns_domain | default("example.local", true) }}
+{% for server in dns_servers %}
+ip dns server-address {{server}} vrf mgmt
+{% endfor %}
     system-mac {{vsx_system_mac | default('02:00:00:00:10:01', true)}}
     inter-switch-link lag {{vsx_isl_lagid | default('256', true)}}
     role {{vsx_role}}
