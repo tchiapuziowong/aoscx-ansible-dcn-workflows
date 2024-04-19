@@ -51,7 +51,7 @@ all:
           children:
             core:
               vars:
-                config_template: templates/2Tier/core.j2
+                config_template: templates/2TierV2/core.j2
                 # VSX information
                 vsx_system_mac: 02:00:00:00:10:00
                 vsx_keepalive_ip_primary: 172.16.104.101
@@ -121,7 +121,7 @@ all:
                       active_gateway_ip: 10.12.102.1
             access:
               vars:
-                config_template: templates/2Tier/access.j2
+                config_template: templates/2TierV2/access.j2
                 speed_interface_group_10g: [1]  # Enables 10g speed on specified interface groups, remove variable if unused
                 vsx_isl_ports: [1/1/31, '1/1/32']
                 vsx_system_mac: 02:00:00:00:10:01
@@ -188,73 +188,3 @@ all:
                     RSVDC-ACCESS2-2:
                       ansible_host: 172.16.104.106  # IP address of the switch, change to match 
                       vsx_role: secondary
-            core:
-              vars:
-                config_template: templates/2Tier/core.j2
-                # VSX information
-                vsx_system_mac: 02:00:00:00:10:00
-                vsx_keepalive_ip_primary: 172.16.104.101
-                vsx_keepalive_ip_secondary: 172.16.104.102
-                vsx_isl_ports: ['1/1/49', '1/1/50']
-                mclags:
-                  - id: 1
-                    interfaces: ['1/1/1', '1/1/2']
-                    allowed_vlans: ['all']
-                    mtu: 9198
-                    description: RACK-1
-                  - id: 2
-                    interfaces: ['1/1/3', '1/1/4']
-                    allowed_vlans: ['all']
-                    mtu: 9198
-                    description: RACK-2
-                  - id: 101
-                    interfaces: ['1/1/29']
-                    allowed_vlans: [4000]
-                    mtu: 9198
-                    description: EXT-FW1-1
-                  - id: 102
-                    interfaces: ['1/1/30']
-                    allowed_vlans: [4000]
-                    mtu: 9198
-                    description: EXT-FW1-2                  
-              hosts:
-                RSVDC-CORE1-1:
-                  ansible_host: 172.16.104.101
-                  vsx_role: primary
-                  loopback0_ip: 10.250.12.1
-                  routing_vlans:
-                    - id: 4000
-                      name: CORE-ROUTING-SVI
-                      ip_address: 10.255.12.1
-                  # SVI information for DC host VLANs - used in jinja2 template
-                  host_vlans:
-                    - id: 101
-                      name: PROD-WEB
-                      ip_address: 10.12.101.2
-                      active_gateway_mac: 02:00:0a:01:65:01
-                      active_gateway_ip: 10.12.101.1
-                    - id: 102
-                      name: PROD-DB
-                      ip_address: 10.12.102.2
-                      active_gateway_mac: 02:00:0a:01:65:01
-                      active_gateway_ip: 10.12.102.1
-                RSVDC-CORE1-2:
-                  ansible_host: 172.16.104.102
-                  loopback0_ip: 10.250.12.2
-                  vsx_role: secondary
-                  routing_vlans:
-                    - id: 4000
-                      name: CORE-ROUTING-SVI
-                      ip_address: 10.255.12.2   
-                  # SVI information for DC host VLANs - used in jinja2 template
-                  host_vlans:
-                    - id: 101
-                      name: PROD-WEB
-                      ip_address: 10.12.101.3
-                      active_gateway_mac: 02:00:0a:01:65:01
-                      active_gateway_ip: 10.12.101.1
-                    - id: 102
-                      name: PROD-DB
-                      ip_address: 10.12.102.3
-                      active_gateway_mac: 02:00:0a:01:65:01
-                      active_gateway_ip: 10.12.102.1
