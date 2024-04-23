@@ -54,8 +54,8 @@ all:
                 config_template: templates/2TierV2/core.j2
                 # VSX information
                 vsx_system_mac: 02:00:00:00:10:00
-                vsx_keepalive_ip_primary: 172.16.104.101
-                vsx_keepalive_ip_secondary: 172.16.104.102
+                vsx_keepalive_ip_primary: 172.16.117.101
+                vsx_keepalive_ip_secondary: 172.16.117.102
                 vsx_isl_ports: ['1/1/49', '1/1/50']
                 mclags:
                   - id: 1
@@ -80,7 +80,7 @@ all:
                     description: EXT-FW1-2                  
               hosts:
                 RSVDC-CORE1-1:
-                  ansible_host: 172.16.104.101
+                  ansible_host: 172.16.117.101
                   vsx_role: primary
                   loopback0_ip: 10.250.12.1
                   routing_vlans:
@@ -100,7 +100,7 @@ all:
                       active_gateway_mac: 02:00:0a:01:65:01
                       active_gateway_ip: 10.12.102.1
                 RSVDC-CORE1-2:
-                  ansible_host: 172.16.104.102
+                  ansible_host: 172.16.117.102
                   loopback0_ip: 10.250.12.2
                   vsx_role: secondary
                   routing_vlans:
@@ -144,8 +144,8 @@ all:
                   vars:
                     # VSX information
                     vsx_system_mac: 02:00:00:00:10:01
-                    vsx_keepalive_ip_primary: 172.16.104.103
-                    vsx_keepalive_ip_secondary: 172.16.104.104
+                    vsx_keepalive_ip_primary: 172.16.117.103
+                    vsx_keepalive_ip_secondary: 172.16.117.104
                     mclags:
                       - id: 1
                         interfaces: [1/1/1]
@@ -159,17 +159,17 @@ all:
                         description: DC-CORE                    
                   hosts:
                     RSVDC-ACCESS1-1:
-                      ansible_host: 172.16.104.103  # IP address of the switch, change to match 
+                      ansible_host: 172.16.117.103  # IP address of the switch, change to match 
                       vsx_role: primary
                     RSVDC-ACCESS1-2:
-                      ansible_host: 172.16.104.104  # IP address of the switch, change to match 
+                      ansible_host: 172.16.117.104  # IP address of the switch, change to match 
                       vsx_role: secondary
                 rack2:
                   vars:
                     # VSX information
                     vsx_system_mac: 02:00:00:00:10:02
-                    vsx_keepalive_ip_primary: 172.16.104.105  # IP address of the switch, change to match 
-                    vsx_keepalive_ip_secondary: 172.16.104.106  # IP address of the switch, change to match 
+                    vsx_keepalive_ip_primary: 172.16.117.105  # IP address of the switch, change to match 
+                    vsx_keepalive_ip_secondary: 172.16.117.106  # IP address of the switch, change to match 
                     vsx_mclags:
                       - id: 1
                         interfaces: [1/1/1]
@@ -183,8 +183,8 @@ all:
                         description: DC-CORE                    
                   hosts:
                     RSVDC-ACCESS2-1:
-                      ansible_host: 172.16.104.105  # IP address of the switch, change to match 
+                      ansible_host: 172.16.117.105  # IP address of the switch, change to match 
                       vsx_role: primary
                     RSVDC-ACCESS2-2:
-                      ansible_host: 172.16.104.106  # IP address of the switch, change to match 
+                      ansible_host: 172.16.117.106  # IP address of the switch, change to match 
                       vsx_role: secondary
