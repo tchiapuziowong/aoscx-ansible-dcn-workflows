@@ -1,0 +1,9 @@
+- hosts: all
+  gather_facts: False
+  collections:
+    - arubanetworks.aoscx
+  tasks:
+    - name: Copy startup-config to running-config
+      aoscx_checkpoint:
+        source_config: 'startup-config'
+        destination_config: 'running-config'    
