@@ -56,7 +56,7 @@ all:
                 vsx_system_mac: 02:00:00:00:10:00
                 vsx_keepalive_ip_primary: 172.16.117.101
                 vsx_keepalive_ip_secondary: 172.16.117.102
-                vsx_isl_ports: ['1/1/49', '1/1/50']
+                vsx_isl_ports: [1/1/31, '1/1/32']
                 mclags:
                   - id: 1
                     interfaces: ['1/1/1', '1/1/2']
@@ -123,7 +123,7 @@ all:
               vars:
                 config_template: templates/2TierV2/access.j2
                 speed_interface_group_10g: [1]  # Enables 10g speed on specified interface groups, remove variable if unused
-                vsx_isl_ports: [1/1/31, '1/1/32']
+                vsx_isl_ports: ['1/1/49', '1/1/50']
                 vsx_system_mac: 02:00:00:00:10:01
                 mclags:
                   - id: 1
