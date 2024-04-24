@@ -74,6 +74,16 @@ interface {{interface}}
     {% endfor %}
 {% else %}
 {% endif %}
+{% if vsx_keepalive_int is defined %}
+interface {{vsx_keepalive_int}}
+    no shutdown
+    description VSX KA
+{% if vsx_role == 'primary' %}
+    ip address {{vsx_keepalive_ip_primary}}/31
+{% else %}
+    ip address {{vsx_keepalive_ip_secondary}}/31
+{% endif %}
+{% endif %}
 {% for lag in mclags %}
 {% for interface in lag.interfaces %}
 interface {{interface}}
